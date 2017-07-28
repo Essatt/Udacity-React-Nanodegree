@@ -42,3 +42,23 @@ export const search = (query, maxResults) =>
     body: JSON.stringify({ query, maxResults })
   }).then(res => res.json())
     .then(data => data.books)
+
+export const authorNames = (names) => {
+  let authorNames = '';
+  if (!names) {
+    return authorNames
+  }
+  for (let i=0; i<names.length; i++) {
+    if (names.length === 1){
+      return names[0]
+    }
+    if (authorNames === ''){
+      authorNames = names[0]
+    } else if (i+1 === names.length) {
+      authorNames += ' and ' + names[i]
+    } else {
+      authorNames += ', ' + names[i]
+    }
+  }
+  return authorNames
+}

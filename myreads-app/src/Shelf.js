@@ -1,26 +1,9 @@
 import React, { Component } from 'react'
 import ShelfTitle from './ShelfTitle.js'
 import Book from './Book.js'
+import * as BooksAPI from './BooksAPI'
 
 class Shelf extends Component {
-
-
-  authorNames(names){
-    let authorNames = '';
-    for (let i=0; i<names.length; i++) {
-      if (names.length === 1){
-        return names[0]
-      }
-      if (authorNames === ''){
-        authorNames = names[0]
-      } else if (i+2 === names.length) {
-        authorNames += ' and ' + names[i]
-      } else {
-        authorNames += ', ' + names[i]
-      }
-    }
-    return authorNames
-  }
 
   render(){
     const { title, type, data } = this.props
@@ -36,8 +19,10 @@ class Shelf extends Component {
               <li key={book.id}>
                 <Book
                   title={book.title}
-                  author={this.authorNames(book.authors)}
+                  author={BooksAPI.authorNames(book.authors)}
                   imageUrl={book.imageLinks.smallThumbnail}
+                  shelf={book.shelf}
+                  book={book}
                 />
               </li>
             )})}

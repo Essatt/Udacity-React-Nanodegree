@@ -1,24 +1,33 @@
-import React from 'react'
+import React, { Component } from 'react'
 
-const SearchBar = (props) => {
-  console.log(props)
-  return(
-    <div className="search-books-bar">
-      <a className="close-search" onClick={() => props.history.push('/')}>Close</a>
-      <div className="search-books-input-wrapper">
-        {/*
-          NOTES: The search from BooksAPI is limited to a particular set of search terms.
-          You can find these search terms here:
-          https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
+class SearchBar extends Component {
 
-          However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-          you don't find a specific author or title. Every search is limited by search terms.
-        */}
-        <input type="text" placeholder="Search by title or author"/>
+  state = {
+    query: ''
+  }
 
+  searchQuery(query){
+    this.setState({ query: query.trim() })
+    this.props.search(query)
+  }
+
+  render() {
+    console.log(this.props)
+    return(
+      <div className="search-books-bar">
+        <a className="close-search" onClick={() => this.props.history.push('/')}>Close</a>
+        <div className="search-books-input-wrapper">
+          <input
+            type="text"
+            placeholder="Search by title or author"
+            value={this.state.query}
+            onChange={(event) => this.searchQuery(event.target.value)}
+          />
+
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default SearchBar
