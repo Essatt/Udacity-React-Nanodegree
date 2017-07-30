@@ -23,6 +23,7 @@ class Shelf extends Component {
                   shelf={book.shelf}
                   book={book}
                   updateShelf={updateShelf}
+                  data={data}
                 />
               </li>
             )})}

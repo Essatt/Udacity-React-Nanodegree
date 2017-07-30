@@ -51,6 +51,7 @@ class BooksApp extends Component {
           <SearchPage
             history={ history }
             updateShelf={this.updateShelf}
+            data={this.state.receivedData}
           />
         )}/>
       </div>

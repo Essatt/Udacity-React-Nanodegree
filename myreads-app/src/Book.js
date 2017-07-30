@@ -17,6 +17,7 @@ class Book extends Component {
               shelf={shelf}
               updateShelf={this.props.updateShelf}
               book={this.props.book}
+              data={this.props.data}
             />
           </div>
         </div>

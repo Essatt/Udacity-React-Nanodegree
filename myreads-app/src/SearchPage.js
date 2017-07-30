@@ -25,6 +25,7 @@ class SearchPage extends Component {
         <SearchResults
           results={this.state.searchResults}
           updateShelf={this.props.updateShelf}
+          data={this.props.data}
         />
       </div>
     )
