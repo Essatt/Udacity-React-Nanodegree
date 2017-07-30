@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import SelectOptions from './SelectOptions'
-import * as BooksAPI from './BooksAPI'
 
 
 class Book extends Component {
@@ -15,8 +14,8 @@ class Book extends Component {
           <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: `url(${this.props.imageUrl})` }}></div>
           <div className="book-shelf-changer">
             <SelectOptions
-              shelf
-              update={BooksAPI.update}
+              shelf={shelf}
+              updateShelf={this.props.updateShelf}
               book={this.props.book}
             />
           </div>

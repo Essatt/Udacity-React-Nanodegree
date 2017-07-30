@@ -6,8 +6,7 @@ import * as BooksAPI from './BooksAPI'
 class Shelf extends Component {
 
   render(){
-    const { title, type, data } = this.props
-    console.log(data)
+    const { title, type, data, updateShelf } = this.props
     return (
       <div className="bookshelf">
         <ShelfTitle title={title} />
@@ -23,6 +22,7 @@ class Shelf extends Component {
                   imageUrl={book.imageLinks.smallThumbnail}
                   shelf={book.shelf}
                   book={book}
+                  updateShelf={updateShelf}
                 />
               </li>
             )})}

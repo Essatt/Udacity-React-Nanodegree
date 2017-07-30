@@ -10,8 +10,17 @@ class BooksApp extends Component {
     receivedData: []
   }
 
-  componentWillReceiveProps(newProps) {
-    this.setState({ receivedData: newProps })
+  updateShelf = (book, shelf) => {
+    BooksAPI.update(book, shelf).then(response => {
+      // set correct shelf
+      book.shelf = shelf
+
+      // filter out book if exists, re-add on correct shelf
+      this.setState(state => {
+        receivedData: state.receivedData.filter(b => b.id !== book.id).concat([book])
+      })
+    })
+    console.log(this.state)
   }
 
   componentDidMount() {
@@ -27,17 +36,22 @@ class BooksApp extends Component {
   }
 
   render() {
+    console.log(this.state)
     return (
       <div className="app">
         <Route exact path="/" render={({ history }) => (
           <MainPage
             history={ history }
             data={this.state.receivedData}
+            updateShelf={this.updateShelf}
           />
         )}/>
 
         <Route path="/search" render={({ history }) => (
-          <SearchPage history={ history }/>
+          <SearchPage
+            history={ history }
+            updateShelf={this.updateShelf}
+          />
         )}/>
       </div>
     )

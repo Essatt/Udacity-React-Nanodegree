@@ -22,7 +22,10 @@ class SearchPage extends Component {
     return (
       <div className="search-books">
         <SearchBar history={this.props.history} search={this.search.bind(this)}/>
-        <SearchResults results={this.state.searchResults}/>
+        <SearchResults
+          results={this.state.searchResults}
+          updateShelf={this.props.updateShelf}
+        />
       </div>
     )
   }

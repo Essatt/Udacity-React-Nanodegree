@@ -17,6 +17,7 @@ const SearchResults = (props) => {
             author={BooksAPI.authorNames(authors)}
             imageUrl={book.imageLinks.smallThumbnail}
             book={book}
+            updateShelf={props.updateShelf}
           />
         </li>
       )})}
