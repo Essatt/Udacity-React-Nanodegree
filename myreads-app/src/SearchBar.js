@@ -12,7 +12,6 @@ class SearchBar extends Component {
   }
 
   render() {
-    console.log(this.props)
     return(
       <div className="search-books-bar">
         <a className="close-search" onClick={() => this.props.history.push('/')}>Close</a>

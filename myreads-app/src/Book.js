@@ -4,6 +4,8 @@ import SelectOptions from './SelectOptions'
 
 class Book extends Component {
   render () {
+    //set shelf to empty string for the books that dont
+    //have authors
     let shelf = ""
     if (this.props.shelf){
       shelf = this.props.shelf
