@@ -3,14 +3,6 @@ import React, { Component } from 'react'
 class SelectOptions extends Component {
 
   render () {
-    //console.log("in select options")
-    //console.log(this.props)
-    /*let bookValue = "none"
-    this.props.data.map((book) => {
-      if (book.id === this.props.book.id){
-        bookValue = book.shelf
-      }
-    })*/
 
     return (
       <select value={this.props.book.shelf} onChange={event => this.props.updateShelf(this.props.book, event.target.value)}>

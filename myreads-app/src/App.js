@@ -14,13 +14,16 @@ class BooksApp extends Component {
     BooksAPI.update(book, shelf).then(response => {
       // set correct shelf
       book.shelf = shelf
+      console.log(book)
+      console.log(shelf)
 
       // filter out book if exists, re-add on correct shelf
       this.setState(state => {
         receivedData: state.receivedData.filter(b => b.id !== book.id).concat([book])
       })
+    }).catch(error => {
+      console.log(error)
     })
-    console.log(this.state)
   }
 
   componentDidMount() {
