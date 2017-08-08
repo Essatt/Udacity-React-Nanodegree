@@ -7,7 +7,7 @@ import SearchPage from './SearchPage'
 
 class BooksApp extends Component {
   state = {
-    receivedData: []
+    receivedData: [],
   }
 
   updateShelf = (book, shelf) => {
@@ -18,9 +18,10 @@ class BooksApp extends Component {
       console.log(shelf)
 
       // filter out book if exists, re-add on correct shelf
-      this.setState(state => {
-        receivedData: state.receivedData.filter(b => b.id !== book.id).concat([book])
-      })
+      const newState =(this.state.receivedData.filter(b => b.id !== book.id).concat([book]))
+      console.log(newState)
+
+      this.setState({ receivedData: newState })
     }).catch(error => {
       console.log(error)
     })
@@ -46,14 +47,14 @@ class BooksApp extends Component {
           <MainPage
             history={ history }
             data={this.state.receivedData}
-            updateShelf={this.updateShelf}
+            updateShelf={this.updateShelf.bind(this)}
           />
         )}/>
 
         <Route path="/search" render={({ history }) => (
           <SearchPage
             history={ history }
-            updateShelf={this.updateShelf}
+            updateShelf={this.updateShelf.bind(this)}
             data={this.state.receivedData}
           />
         )}/>
