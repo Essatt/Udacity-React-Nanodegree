@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ArrowUp from 'react-icons/lib/fa/arrow-up'
 import ArrowDown from 'react-icons/lib/fa/arrow-down'
-import Comments from 'react-icons/lib/fa/comments'
+//import Comments from 'react-icons/lib/fa/comments'
 import SortDown from 'react-icons/lib/fa/sort-desc'
 import Edit from 'react-icons/lib/fa/edit'
 import Delete from 'react-icons/lib/fa/trash'

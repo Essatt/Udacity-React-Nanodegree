@@ -14,7 +14,60 @@ import Delete from 'react-icons/lib/fa/trash'
 import Add from 'react-icons/lib/fa/plus-circle'
 
 class MainPage extends Component {
+
+   getCategories () {
+    var categories = []
+    for(let category in this.props.data.categories){
+      categories.push(
+        <ListGroupItem key={category}>
+          {category}
+        </ListGroupItem>
+      )
+    }
+    return categories
+  }
+
+  getPosts () {
+    var postArray = []
+    for(let category in this.props.data.categories){
+      for (let id in this.props.data.categories[category].posts){
+        var post =this.props.data.categories[category].posts[id].post
+          console.log(post)
+          var commentsArray = []
+          for(let comments1 in this.props.data.categories[category].posts[id].comments){
+            commentsArray.push(comments1)
+          }
+          console.log(post)
+          postArray.push(
+            <ListGroupItem key={post.id}>
+              <Row className="show-grid" >
+                <Col xs={4} md={4} lg={4} >
+                  <span className='PostTitle' >{post.title}</span> by {post.author}
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <Comments /> {commentsArray.length}
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <ArrowUp /> {post.voteScore} <ArrowDown />
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <Edit />
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <Delete />
+                </Col>
+              </Row>
+            </ListGroupItem>
+          )
+
+      }
+    }
+    return postArray
+  }
+
   render() {
+    var categories = this.getCategories()
+    var posts = this.getPosts()
     return (
       <div>
         {// Headers -->
@@ -39,38 +92,19 @@ class MainPage extends Component {
             </Col>
           </Row>
 
+          {//<-- Headers End
+          }
+
 
           <Row className="show-grid" style={{paddingTop:'5px'}}>
             <Col xs={4} md={3} >
               <ListGroup>
-                <ListGroupItem>
-                  Category 1
-                </ListGroupItem>
-                <ListGroupItem>Category 2</ListGroupItem>
-                <ListGroupItem>...</ListGroupItem>
+                {categories}
               </ListGroup>
             </Col>
             <Col xs={8} md={9} >
               <ListGroup>
-                <ListGroupItem>
-                    <Row className="show-grid" >
-                      <Col xs={4} md={4} lg={4} >
-                        <span className='PostTitle' >Title</span> by Author
-                      </Col>
-                      <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                        <Comments /> 5
-                      </Col>
-                      <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                        <ArrowUp /> 15 <ArrowDown />
-                      </Col>
-                      <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                        <Edit />
-                      </Col>
-                      <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                        <Delete />
-                      </Col>
-                    </Row>
-                </ListGroupItem>
+                {posts}
                 <ListGroupItem>Post 2</ListGroupItem>
                 <ListGroupItem>...</ListGroupItem>
               </ListGroup>
