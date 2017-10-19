@@ -6,109 +6,93 @@ import MainPage from './MainPage'
 import PostDetail from './PostDetail'
 import {
   initializeCategories,
-  initializePost,
-  initializeComment,
-  normalizeStore
+  initializePosts,
+  initializeComments
 } from '../actions'
-
 
 class App extends Component {
   componentDidMount(){
     console.log('componentDidMount')
 
     var myHeaders = { 'Authorization': 'esats server' }
-    var myInit = { method: 'GET', headers: myHeaders}
+    var myInit = { method: 'GET', headers: myHeaders }
     var api = 'http://localhost:5001'
-    var id = '8xf0y6ziyjabvozdd253nd'
+
+    /*fetch(`${api}/posts/8xf0y6ziyjabvozdd253nd/comments`, myInit)
+    .then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })*/
+
+    fetch(`${api}/posts`, myInit)
+    .then(res => res.json())
+    .then(posts => {
+      this.props.initializePosts(posts)
+      posts.map((post) => {
+        var allComments = []
+        fetch(`${api}/posts/${post.id}/comments`, myInit)
+        .then(resp => resp.json())
+        .then(comments => {
+          if (typeof comments !== 'undefined' && comments.length > 0) {
+            comments.map((comment) => {
+              allComments.push(comment)
+            })
+          }
+          this.props.initializeComments(allComments)
+        })
+      })
+    })
 
     //categories
-    let reduxStore = fetch(`${api}/categories`, myInit)
+    var newCategories
+    fetch(`${api}/categories`, myInit)
     .then(res => res.json())
     .then(response => {
-      console.log(response)
       let categories = response.categories
-      let newCategories
       categories.map(newCategory => {
         newCategories = {
           ...newCategories,
           [newCategory.name]: newCategory
         }
       })
-      console.log(newCategories)
       this.props.initializeCategories(newCategories)
-      //console.log('APP.JS initializing categories')
-      //console.log(categories)
-      categories.map(category => {
-        //post per categories
-        fetch(`${api}/${category.path}/posts`, myInit)
-        .then(res => res.json())
-        .then (posts => {
-          posts.map(post => {
-            console.log('APP.JS initializing post')
-            console.log(posts)
-            console.log(post)
-            if(post){
-              console.log(post)
-              this.props.initializePost(category.name, post)
-              //comment per post
-              fetch(`${api}/posts/${post.id}/comments`, myInit)
-              .then(res => res.json())
-              .then(comments => {
-                comments.map(comment => {
-                  //console.log('APP.JS initializing comment')
-                  console.log(comment)
-                  console.log(post)
-                  if(comment){
-                    this.props.initializeComment(category.name, post, comment)
-                  }
-
-                })
-              })
-            }
-          })
-        })
-      })
     })
-    //.then(normalizeStore())
+  }
 
-  /*  //all posts
-    fetch(`${api}/posts`, myInit).then(function(response) {
-      let retunObject = response.json()
-      console.log(retunObject)
-      return retunObject
-    });
-
-    //comments for 1 post
-    fetch(`${api}/posts/${id}/comments`, myInit).then(function(response) {
-      let retunObject = response.json()
-      console.log(retunObject)
-      return retunObject
-    });
-
-*/
-
+  getAllURLs(){
+    var urlArray = []
+    urlArray.push(
+      <Route exact path='/' key="main" render={({ history }) => (
+        <MainPage categories={this.props.category} categoryFilter= {null}/>
+      )}/>
+    )
+    for (let category in this.props.category){
+      console.log(category)
+      let url = `/${category}`
+      console.log(url)
+      urlArray.push(
+        <Route exact path={url} key={category} render={({ history }) => (
+          <MainPage categories={this.props.category} categoryFilter={category}/>
+        )}/>
+      )
+    }
+    console.log(urlArray)
+    return urlArray
   }
 
   render() {
-    {console.log(this.props.initialize)}
+    var mainPage = this.getAllURLs()
     return (
       <div>
-        <Route exact path="/" render={({ history }) => (
-
-          <MainPage data={this.props.initialize} />
-        )}/>
-
-        <Route path="/post" render={({ history }) => (
-          <PostDetail  />
-        )}/>
+        {mainPage}
       </div>
-
     );
   }
 }
-function mapStateToProps({initialize, post, comment}) {
+
+function mapStateToProps({category, post, comment}) {
   return {
-    initialize,
+    category,
     post,
     comment
   }
@@ -117,9 +101,8 @@ function mapStateToProps({initialize, post, comment}) {
 function mapDispatchToProps(dispatch) {
   return {
     initializeCategories: (data) => dispatch(initializeCategories(data)),
-    initializePost: (category, post) => dispatch(initializePost(category, post)),
-    initializeComment: (category, post, comment) => dispatch(initializeComment(category, post, comment)),
-    normalizeStore: (data) => dispatch(normalizeStore(data))
+    initializePosts: (posts) => dispatch(initializePosts(posts)),
+    initializeComments: (allComments) => dispatch(initializeComments(allComments)),
   }
 }
 

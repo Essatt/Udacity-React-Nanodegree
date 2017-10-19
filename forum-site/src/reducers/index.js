@@ -12,79 +12,20 @@ import {
   ADD_POST,
   ADD_COMMENT,
   INITIALIZE_CATEGORIES,
-  INITIALIZE_POST,
-  INITIALIZE_COMMENT,
-  NORMALIZE_STORE
+  INITIALIZE_POSTS,
+  INITIALIZE_COMMENTS,
+  SORT_COMMENTS_BY,
+  SORT_POSTS_BY
 } from '../actions'
 
-function initialize (state={}, action) {
-  console.log('CAME TO INITIALIZE REDUCER')
-  console.log(action)
+
+function category (state={}, action) {
   const { categories, category, post={}, comment } = action
   let returnValue
+
   switch (action.type) {
     case INITIALIZE_CATEGORIES:
-      //console.log("REDUCER initializeCategories reducer ran")
-
-      returnValue = {
-        ...state,
-          categories
-      }
-      //console.log(returnValue)
-      return returnValue;
-
-
-    case INITIALIZE_POST:
-      console.log("REDUCER INITIALIZE_POST reducer ran")
-      returnValue = {
-        ...state,
-          categories: {
-            ...state.categories,
-              [category]: {
-                ...state.categories[category],
-                posts: {
-                  ...state.categories[category].posts,
-                  [post.id]: {
-                    post
-                  }
-                }
-              }
-          }
-      }
-      console.log(returnValue)
-      return returnValue
-
-    case INITIALIZE_COMMENT:
-      console.log("REDUCER INITIALIZE_COMMENT reducer ran")
-      console.log(post)
-      returnValue = {
-        ...state,
-          categories: {
-            ...state.categories,
-              [category]: {
-                ...state.categories[category],
-                posts: {
-                  ...state.categories[category].posts,
-                  [post.id]: {
-                    ...state.categories[category].posts[post.id],
-                    comments: {
-                      ...state.categories[category].posts[post.id].comments,
-                        [comment.id]: {
-                          comment
-                        }
-                    }
-
-                  }
-                }
-              }
-          }
-      }
-      console.log(returnValue)
-      return returnValue
-
-    case NORMALIZE_STORE:
-      //console.log("REDUCER NORMALIZE_STORE reducer ran")
-      return state
+      return categories;
 
     default:
       return state
@@ -94,8 +35,11 @@ function initialize (state={}, action) {
 
 
 function post (state = {}, action) {
-  console.log('CAME TO POST REDUCER')
+
   switch (action.type) {
+    case INITIALIZE_POSTS:
+      return action.posts
+
     case INCREMENT_POST:
       return state
 
@@ -117,8 +61,16 @@ function post (state = {}, action) {
 }
 
 function comment (state = {}, action) {
-  console.log('CAME TO COMMENT REDUCER')
+
   switch (action.type) {
+    case INITIALIZE_COMMENTS:
+      var returnValue = [...state]
+      action.comments.map((comment) => {
+        returnValue = [...returnValue, comment]
+      })
+
+      return returnValue
+
     case INCREMENT_COMMENT:
       return state
 
@@ -139,4 +91,31 @@ function comment (state = {}, action) {
   }
 }
 
-export default combineReducers({initialize, post, comment})
+function commentSort (state = {}, action) {
+
+  switch (action.type) {
+    case SORT_COMMENTS_BY:
+        return {
+          sortBy: action.sortBy,
+          way: action.way
+        }
+    default:
+      return state
+  }
+}
+
+function postSort (state = {}, action) {
+
+  switch (action.type) {
+    case SORT_POSTS_BY:
+      return {
+        sortBy: action.sortBy,
+        way: action.way
+      }
+
+    default:
+      return state
+  }
+}
+
+export default combineReducers({category, post, comment, postSort, commentSort})

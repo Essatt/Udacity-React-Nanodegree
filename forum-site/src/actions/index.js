@@ -9,35 +9,30 @@ export const DELETE_COMMENT = 'DELETE_COMMENT'
 export const ADD_POST = 'DELETE_POST'
 export const ADD_COMMENT = 'DELETE_COMMENT'
 export const INITIALIZE_CATEGORIES = 'INITIALIZE_CATEGORIES'
-export const INITIALIZE_POST = 'INITIALIZE_POST'
-export const INITIALIZE_COMMENT = 'INITIALIZE_COMMENT'
-export const NORMALIZE_STORE = 'NORMALIZE_STORE'
-
-//SORT Posts
-//SORT Comments
+export const INITIALIZE_POSTS = 'INITIALIZE_POSTS'
+export const INITIALIZE_COMMENTS = 'INITIALIZE_COMMENTS'
+export const SORT_COMMENTS_BY = 'SORT_COMMENTS_BY'
+export const SORT_POSTS_BY = 'SORT_POSTS_BY'
 //FILTER Posts by category
 
+export function sortPosts(sortBy, way) {
+  return {type: SORT_POSTS_BY, sortBy, way}
+}
+
+export function sortComments(sortBy, way) {
+  return {type: SORT_COMMENTS_BY, sortBy, way}
+}
+
+export function initializePosts(posts){
+  return {type: INITIALIZE_POSTS, posts}
+}
+
+export function initializeComments(comments){
+  return {type: INITIALIZE_COMMENTS, comments}
+}
+
 export function initializeCategories (categories) {
-  //console.log("ACTIONS initializeCategories ran")
-  //console.log(categories)
   return {type: INITIALIZE_CATEGORIES, categories}
-}
-
-export function initializePost (category, post) {
-  console.log(post)
-  console.log(category)
-  //console.log("ACTIONS initializePost action ran")
-  return {type: INITIALIZE_POST, category, post}
-}
-
-export function initializeComment (category, post, comment) {
-  //console.log("ACTIONS initializeComment action ran"
-  return {type: INITIALIZE_COMMENT,category, post, comment}
-}
-
-export function normalizeStore () {
-  //console.log("ACTIONS normalizeStore action ran")
-  return {type: NORMALIZE_STORE}
 }
 
 

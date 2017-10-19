@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import {connect} from 'react-redux'
+import { Link } from 'react-router-dom'
+
 import ListGroup from 'react-bootstrap/lib/ListGroup'
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem'
 import Grid from 'react-bootstrap/lib/Grid'
@@ -12,32 +15,50 @@ import SortDown from 'react-icons/lib/fa/sort-desc'
 import Edit from 'react-icons/lib/fa/edit'
 import Delete from 'react-icons/lib/fa/trash'
 import Add from 'react-icons/lib/fa/plus-circle'
+import {
+  sortPosts,
+  sortComments,
+  addPost
+} from '../actions'
 
 class MainPage extends Component {
 
    getCategories () {
     var categories = []
-    for(let category in this.props.data.categories){
+    for(let category in this.props.categories){
+      let url = `/${category}`
       categories.push(
         <ListGroupItem key={category}>
-          {category}
+          <Link to={url}>
+            {category}
+          </Link>
         </ListGroupItem>
       )
     }
+    console.log(categories)
     return categories
   }
 
   getPosts () {
     var postArray = []
-    for(let category in this.props.data.categories){
-      for (let id in this.props.data.categories[category].posts){
-        var post =this.props.data.categories[category].posts[id].post
-          console.log(post)
-          var commentsArray = []
-          for(let comments1 in this.props.data.categories[category].posts[id].comments){
-            commentsArray.push(comments1)
-          }
-          console.log(post)
+    if (Object.keys(this.props.posts).length === 0 && this.props.posts.constructor === Object){
+    }else{
+      this.props.posts.filter((post) => {
+        if(this.props.categoryFilter !== null){
+          return post.category == this.props.categoryFilter
+        }else{
+          return post
+        }
+      })
+      .map((post) => {
+        var commentsArray = []
+        if (Object.keys(this.props.comments).length === 0 && this.props.comments.constructor === Object){
+        }else{
+          this.props.comments.map((comment) => {
+            if (comment.parentId === post.id){
+              commentsArray.push(comment)
+            }
+          })
           postArray.push(
             <ListGroupItem key={post.id}>
               <Row className="show-grid" >
@@ -59,10 +80,50 @@ class MainPage extends Component {
               </Row>
             </ListGroupItem>
           )
+        }
+      })
+    }
 
+    return postArray
+
+  }
+
+  handleSortByDate(){
+    console.log(this.props)
+    if (Object.keys(this.props.postSort).length === 0 && this.props.postSort.constructor === Object){
+      this.props.sortPosts ("date", "ASC")
+    }else{
+      if(this.props.postSort.sortBy !== "date"){
+        this.props.sortPosts ("date", "ASC")
+      }else{
+        if(this.props.postSort.way !== "ASC"){
+          this.props.sortPosts ("date", "ASC")
+        }else{
+          this.props.sortPosts ("date", "DESC")
+        }
       }
     }
-    return postArray
+  }
+
+  handleSortByScore(){
+    console.log(this.props)
+    if (Object.keys(this.props.postSort).length === 0 && this.props.postSort.constructor === Object){
+      this.props.sortPosts ("score", "ASC")
+    }else{
+      if(this.props.postSort.sortBy !== "score"){
+        this.props.sortPosts ("score", "ASC")
+      }else{
+        if(this.props.postSort.way !== "ASC"){
+          this.props.sortPosts ("score", "ASC")
+        }else{
+          this.props.sortPosts ("score", "DESC")
+        }
+      }
+    }
+  }
+
+  handleAddPost(){
+    //open modal
   }
 
   render() {
@@ -74,27 +135,36 @@ class MainPage extends Component {
         }
         <Grid style={{paddingTop:'5px'}}>
           <Row className="show-grid">
-            <Col xs={4} md={3} >
+            <Col xs={3} md={3} >
               <h1>Categories</h1>
             </Col>
-            <Col xs={4} md={5} >
+            <Col xs={3} md={3} >
               <h1>Posts</h1>
             </Col>
-            <Col style={{paddingTop:12, textAlign: 'right'}} xs={2} >
-              <h3 >
-                Add <Add size={35} style={{paddingBottom:5}}/>
-              </h3>
+            <Col style={{paddingTop:25, textAlign: 'right'}} xs={2} >
+              <button onClick={this.handleAddPost.bind(this)}>
+                <h4 >
+                  Add <Add size={27} style={{paddingBottom:5}}/>
+                </h4>
+              </button>
             </Col>
-            <Col style={{paddingTop:10, textAlign: 'right'}} xs={2} >
-              <h3>
-                Sort By <SortDown style={{verticalAlign: 'center'}}/>
-              </h3>
+            <Col style={{paddingTop:25, textAlign: 'right'}} xs={2} >
+              <button onClick={this.handleSortByScore.bind(this)}>
+                <h4>
+                  Sort By Score <SortDown style={{verticalAlign: 'center'}}/>
+                </h4>
+              </button>
+            </Col>
+            <Col style={{paddingTop:25, textAlign: 'right'}} xs={2} >
+              <button onClick={this.handleSortByDate.bind(this)}>
+                <h4>
+                  Sort By Date <SortDown style={{verticalAlign: 'center'}}/>
+                </h4>
+              </button>
             </Col>
           </Row>
-
           {//<-- Headers End
           }
-
 
           <Row className="show-grid" style={{paddingTop:'5px'}}>
             <Col xs={4} md={3} >
@@ -105,17 +175,89 @@ class MainPage extends Component {
             <Col xs={8} md={9} >
               <ListGroup>
                 {posts}
-                <ListGroupItem>Post 2</ListGroupItem>
-                <ListGroupItem>...</ListGroupItem>
               </ListGroup>
             </Col>
           </Row>
         </Grid>
       </div>
-
     );
   }
 }
 
+function mapStateToProps({post, comment, postSort, commentSort}) {
 
-export default MainPage
+  var postL
+  var commentL
+  if (Object.keys(postSort).length === 0 && postSort.constructor === Object){
+    postL = post
+  }else if(postSort.sortBy === "date"){
+    if (postSort.way === "ASC"){
+      postL = post.sort(function(a, b){
+        return a.timestamp-b.timestamp
+      })
+      console.log(postL)
+    }else if (postSort.way === "DESC"){
+      postL = post.sort(function(a, b){
+        return b.timestamp-a.timestamp
+      })
+      console.log(postL)
+    }
+  }else if(postSort.sortBy === "score"){
+    if (postSort.way === "ASC"){
+      postL = post.sort(function(a, b){
+        return a.voteScore-b.voteScore
+      })
+      console.log(postL)
+    }else if (postSort.way === "DESC"){
+      postL= post.sort(function(a, b){
+        return b.voteScore-a.voteScore
+      })
+    }
+  }else{
+    postL = post
+  }
+
+  if (Object.keys(commentSort).length === 0 && commentSort.constructor === Object){
+    commentL = comment
+  }else if(commentSort.sortBy === "date"){
+    if (commentSort.way === "ASC"){
+      commentL= comment.sort(function(a, b){
+        return a.timestamp-b.timestamp
+      })
+    }else if (commentSort.way === "DESC"){
+      commentL= comment.sort(function(a, b){
+        return b.timestamp-a.timestamp
+      })
+    }
+  }else if(commentSort.sortBy === "score"){
+    if (commentSort.way === "ASC"){
+      commentL= comment.sort(function(a, b){
+        return a.voteScore-b.voteScore
+      })
+    }else if (commentSort.way === "DESC"){
+      commentL= comment.sort(function(a, b){
+        return b.voteScore-a.voteScore
+      })
+    }
+  }else{
+    commentL = comment
+  }
+  console.log(postL)
+  console.log(commentL)
+  return {
+    posts: postL,
+    comments: commentL,
+    postSort,
+    commentSort
+  }
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    sortPosts: (sortBy, way) => dispatch(sortPosts(sortBy, way)),
+    sortComments: (sortBy, way) => dispatch(sortComments(sortBy, way)),
+  }
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(MainPage)
