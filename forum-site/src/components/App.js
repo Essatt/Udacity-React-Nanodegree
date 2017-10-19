@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { Route } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 import {connect} from 'react-redux'
+import {Provider} from 'react-redux'
 
 import MainPage from './MainPage'
 import PostDetail from './PostDetail'
@@ -58,7 +59,7 @@ class App extends Component {
       this.props.initializeCategories(newCategories)
     })
   }
-
+/*
   getAllURLs(){
     var urlArray = []
     urlArray.push(
@@ -80,12 +81,40 @@ class App extends Component {
     return urlArray
   }
 
+  */
+
+/*
+        <Provider store={this.props.store}>
+          <div>
+            {mainPage}
+          </div>
+        </Provider>
+
+
+        <Route exact path="/create" component={ManagePostForm}/>
+        <Route path="/create/:id" component={ManagePostForm}/>
+        <Route component={NotFound}/>
+        <Route path="/404" component={NotFound}/>
+        <Route path="/postdetails/:id" component={PostDetails}/>
+
+        */
+
   render() {
-    var mainPage = this.getAllURLs()
+    //var mainPage = this.getAllURLs()
     return (
-      <div>
-        {mainPage}
-      </div>
+      <Provider store={this.props.store}>
+        <div className="App">
+          <Switch>
+            <Route exact path="/" render={(props) =>
+              <MainPage {...props} categories={this.props.category} />
+            }/>
+
+            <Route path="/category/:id" render={(props) => (
+              <MainPage {...props} categories={this.props.category} />
+            )}/>
+          </Switch>
+        </div>
+      </Provider>
     );
   }
 }

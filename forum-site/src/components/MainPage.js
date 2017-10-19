@@ -26,7 +26,7 @@ class MainPage extends Component {
    getCategories () {
     var categories = []
     for(let category in this.props.categories){
-      let url = `/${category}`
+      let url = `/category/${category}`
       categories.push(
         <ListGroupItem key={category}>
           <Link to={url}>
@@ -41,11 +41,12 @@ class MainPage extends Component {
 
   getPosts () {
     var postArray = []
+    console.log(this.props)
     if (Object.keys(this.props.posts).length === 0 && this.props.posts.constructor === Object){
     }else{
       this.props.posts.filter((post) => {
-        if(this.props.categoryFilter !== null){
-          return post.category == this.props.categoryFilter
+        if(this.props.match.params.id !== null && this.props.match.params.id !== undefined){
+          return post.category == this.props.match.params.id
         }else{
           return post
         }
@@ -129,6 +130,10 @@ class MainPage extends Component {
   render() {
     var categories = this.getCategories()
     var posts = this.getPosts()
+    var currentLocation = window.location.href
+    console.log(this.props)
+    //console.log(match.params.id)
+    console.log(currentLocation)
     return (
       <div>
         {// Headers -->
