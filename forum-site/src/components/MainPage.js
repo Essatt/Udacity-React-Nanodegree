@@ -25,6 +25,7 @@ class MainPage extends Component {
 
    getCategories () {
     var categories = []
+    console.log(this.props.categories)
     for(let category in this.props.categories){
       let url = `/category/${category}`
       categories.push(
@@ -189,7 +190,7 @@ class MainPage extends Component {
   }
 }
 
-function mapStateToProps({post, comment, postSort, commentSort}) {
+function mapStateToProps({post, comment, postSort, commentSort, category}) {
 
   var postL
   var commentL
@@ -253,7 +254,8 @@ function mapStateToProps({post, comment, postSort, commentSort}) {
     posts: postL,
     comments: commentL,
     postSort,
-    commentSort
+    commentSort,
+    categories: category
   }
 }
 
