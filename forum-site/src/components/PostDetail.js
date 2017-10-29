@@ -94,7 +94,7 @@ class PostDetail extends Component {
     let params = {
       method: 'POST',
       headers: myHeaders,
-      option: 'upVote'
+      body: 'option=upVote'
     }
     //this.props.incrementComment(id)
     console.log(`${api}/posts/${id}`)
@@ -126,7 +126,7 @@ class PostDetail extends Component {
     let params = {
       method: 'POST',
       headers: myHeaders,
-      option: 'upVote'
+      body: 'option=upVote'
     }
     this.props.incrementComment(id)
     console.log(`${api}/comments/${id}`)
