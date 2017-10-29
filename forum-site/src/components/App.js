@@ -5,23 +5,12 @@ import {Provider} from 'react-redux'
 import MainPage from './MainPage'
 import PostDetail from './PostDetail'
 import InitializeRedux from './InitializeRedux'
+import NotFound from './NotFound'
+import ManagePostForm from './ManagePostForm'
+
+//TODO change the post detail URL. Its supposed to be category/postid
 
 class App extends Component {
-/*
-        <Provider store={this.props.store}>
-          <div>
-            {mainPage}
-          </div>
-        </Provider>
-
-
-        <Route exact path="/create" component={ManagePostForm}/>
-        <Route path="/create/:id" component={ManagePostForm}/>
-        <Route component={NotFound}/>
-        <Route path="/404" component={NotFound}/>
-        <Route path="/postdetails/:id" component={PostDetails}/>
-
-        */
 
   render() {
     return (
@@ -30,12 +19,19 @@ class App extends Component {
           <InitializeRedux />
           <Switch>
             <Route exact path="/" render={(props) =>
-              <MainPage {...props} categories={this.props.category} />
+              <MainPage {...props} />
             }/>
+            <Route eaxt path="/404" component={NotFound}/>
 
-            <Route path="/category/:id" render={(props) => (
-              <MainPage {...props} categories={this.props.category} />
+            <Route path="/post/edit/:id" component={ManagePostForm}/>
+
+            <Route exact path="/create" component={ManagePostForm}/>
+
+            <Route exact path="/:id" render={(props) => (
+              <MainPage {...props}  />
             )}/>
+            <Route path="/:category/:id" component={PostDetail} />
+            <Route component={NotFound}/>
           </Switch>
         </div>
       </Provider>

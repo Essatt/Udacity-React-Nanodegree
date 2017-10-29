@@ -17,17 +17,26 @@ import Delete from 'react-icons/lib/fa/trash'
 import Add from 'react-icons/lib/fa/plus-circle'
 import {
   sortPosts,
-  sortComments,
-  addPost
+  addPost,
+  editPost,
+  incrementPost,
+  decrementPost,
+  deletePost
 } from '../actions'
+
+//TODO cant access post details page (it reroutes to edit)
+//TODO cant click on post to go to post details
+//TODO deal with deleted posts and comments
+//TODO increment decrement posts
+//TODO DELETE posts
 
 class MainPage extends Component {
 
-   getCategories () {
+  getCategories () {
     var categories = []
     console.log(this.props.categories)
     for(let category in this.props.categories){
-      let url = `/category/${category}`
+      let url = `/${category}`
       categories.push(
         <ListGroupItem key={category}>
           <Link to={url}>
@@ -63,23 +72,28 @@ class MainPage extends Component {
           })
           postArray.push(
             <ListGroupItem key={post.id}>
-              <Row className="show-grid" >
-                <Col xs={4} md={4} lg={4} >
-                  <span className='PostTitle' >{post.title}</span> by {post.author}
-                </Col>
-                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                  <Comments /> {commentsArray.length}
-                </Col>
-                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                  <ArrowUp /> {post.voteScore} <ArrowDown />
-                </Col>
-                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                  <Edit />
-                </Col>
-                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                  <Delete />
-                </Col>
-              </Row>
+              <Link to={'/' + post.category + '/' + post.id}>
+                <Row className="show-grid" >
+                  <Col xs={4} md={4} lg={4} >
+                    <div style={{textAlign: 'left'}}>
+                      <span className='PostTitle' >{post.title}</span> by {post.author}
+                    </div>
+
+                  </Col>
+                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                    <Comments /> {commentsArray.length}
+                  </Col>
+                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                    <ArrowUp /> {post.voteScore} <ArrowDown />
+                  </Col>
+                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                    <Edit />
+                  </Col>
+                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                    <Delete />
+                  </Col>
+                </Row>
+              </Link>
             </ListGroupItem>
           )
         }
@@ -125,7 +139,7 @@ class MainPage extends Component {
   }
 
   handleAddPost(){
-    //open modal
+    this.props.history.push(`/create`)
   }
 
   render() {
@@ -133,7 +147,6 @@ class MainPage extends Component {
     var posts = this.getPosts()
     var currentLocation = window.location.href
     console.log(this.props)
-    //console.log(match.params.id)
     console.log(currentLocation)
     return (
       <div>
@@ -190,10 +203,9 @@ class MainPage extends Component {
   }
 }
 
-function mapStateToProps({post, comment, postSort, commentSort, category}) {
-
+function mapStateToProps({post, comment, postSort, category}) {
+  console.log(this.props)
   var postL
-  var commentL
   if (Object.keys(postSort).length === 0 && postSort.constructor === Object){
     postL = post
   }else if(postSort.sortBy === "date"){
@@ -223,38 +235,10 @@ function mapStateToProps({post, comment, postSort, commentSort, category}) {
     postL = post
   }
 
-  if (Object.keys(commentSort).length === 0 && commentSort.constructor === Object){
-    commentL = comment
-  }else if(commentSort.sortBy === "date"){
-    if (commentSort.way === "ASC"){
-      commentL= comment.sort(function(a, b){
-        return a.timestamp-b.timestamp
-      })
-    }else if (commentSort.way === "DESC"){
-      commentL= comment.sort(function(a, b){
-        return b.timestamp-a.timestamp
-      })
-    }
-  }else if(commentSort.sortBy === "score"){
-    if (commentSort.way === "ASC"){
-      commentL= comment.sort(function(a, b){
-        return a.voteScore-b.voteScore
-      })
-    }else if (commentSort.way === "DESC"){
-      commentL= comment.sort(function(a, b){
-        return b.voteScore-a.voteScore
-      })
-    }
-  }else{
-    commentL = comment
-  }
-  console.log(postL)
-  console.log(commentL)
   return {
     posts: postL,
-    comments: commentL,
     postSort,
-    commentSort,
+    comments: comment,
     categories: category
   }
 }
@@ -262,7 +246,6 @@ function mapStateToProps({post, comment, postSort, commentSort, category}) {
 function mapDispatchToProps(dispatch) {
   return {
     sortPosts: (sortBy, way) => dispatch(sortPosts(sortBy, way)),
-    sortComments: (sortBy, way) => dispatch(sortComments(sortBy, way)),
   }
 }
 

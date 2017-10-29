@@ -125,7 +125,7 @@ class App extends Component {
           </div>
         </Modal>
 
-        <Modal className='modal' verlayClassName='overlay' isOpen={ingredientsModalOpen} onRequestClose={this.closeIngredientsModal} contentLabel='Modal'>
+        <Modal className='modal' overlayClassName='overlay' isOpen={ingredientsModalOpen} onRequestClose={this.closeIngredientsModal} contentLabel='Modal'>
           {ingredientsModalOpen && <ShoppingList list={this.generateShoppingList()}/>}
         </Modal>
 

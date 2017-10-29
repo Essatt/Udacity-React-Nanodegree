@@ -72,7 +72,17 @@ function comment (state = {}, action) {
       return returnValue
 
     case INCREMENT_COMMENT:
-      return state
+      var index
+      let commentIndex = state.filter((comment, indexL) => {
+        if (comment.id == action.cid){
+          index = indexL
+        }
+        return comment.id == action.cid
+      })
+
+      var returnValue = [...state]
+      returnValue[index].voteScore += 1
+      return returnValue
 
     case DECREMENT_COMMENT:
       return state

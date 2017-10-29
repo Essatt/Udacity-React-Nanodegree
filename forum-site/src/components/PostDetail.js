@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import {connect} from 'react-redux'
+import moment from 'moment'
+
 import ArrowUp from 'react-icons/lib/fa/arrow-up'
 import ArrowDown from 'react-icons/lib/fa/arrow-down'
 //import Comments from 'react-icons/lib/fa/comments'
@@ -9,121 +12,344 @@ import Add from 'react-icons/lib/fa/plus-circle'
 import Grid from 'react-bootstrap/lib/Grid'
 import Col from 'react-bootstrap/lib/Col'
 import Row from 'react-bootstrap/lib/Row'
+import Button from 'react-bootstrap/lib/Button'
 import ListGroup from 'react-bootstrap/lib/ListGroup'
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem'
+import {
+  sortComments,
+  addComment,
+  editComment,
+  incrementPost,
+  incrementComment,
+  decrementPost,
+  decrementComment,
+  deletePost,
+  deleteComment,
+  editPost
+} from '../actions'
+
+//TODO cant click on post to go to post details
+//TODO deal with deleted posts and comments
+//TODO increment decrement comment
+//TODO Edit comment
+//TODO ADD comment
+//TODO DELETE posts
+//TODO DELETE comment
 
 class PostDetail extends Component {
+
+  state = {
+    myHeaders: { 'Authorization': 'esats server' },
+    api: 'http://localhost:5001'
+  }
+
+  componentDidMount(){
+    this.checkIfCategoryTrue()
+  }
+  componentWillReceiveProps(){
+    this.checkIfCategoryTrue()
+  }
+
+  checkIfCategoryTrue(){
+    console.log("in the checking")
+    console.log(this.props)
+    if(typeof this.props.post !== 'undefined' && this.props.post.length > 0) {
+      console.log("its legit")
+      console.log(this.props.match.params.category)
+      this.props.post.filter((post) => {
+        console.log(post)
+        console.log(this.props.match.params)
+        return post.id == this.props.match.params.id
+      }).map((post) => {
+        console.log(post.category)
+        if(this.props.match.params.category != post.category ){
+          this.props.history.push(`/404`)
+        }
+      })
+    }
+  }
+
+  handleEditPost(id){
+    this.props.history.push(`/post/edit/${id}`)
+  }
+
+  handleDeletePost(){
+
+  }
+
+  handleEditComment(){
+
+  }
+
+  handleDeleteComment(){
+
+  }
+
+  handleCreateComment(){
+
+  }
+
+  incrementPostScore(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'POST',
+      headers: myHeaders,
+      option: 'upVote'
+    }
+    //this.props.incrementComment(id)
+    console.log(`${api}/posts/${id}`)
+    fetch(`${api}/posts/${id}`, params
+    ).then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })
+
+    let params1 = {
+      method: 'GET',
+      headers: myHeaders,
+    }
+
+    fetch(`${api}/posts/${id}`, params1
+    ).then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })
+
+  }
+
+  incrementCommentScore(id){
+    const {api, myHeaders} = this.state
+    console.log(api)
+    console.log(myHeaders)
+    console.log(id)
+
+    let params = {
+      method: 'POST',
+      headers: myHeaders,
+      option: 'upVote'
+    }
+    this.props.incrementComment(id)
+    console.log(`${api}/comments/${id}`)
+    fetch(`${api}/comments/${id}`, params
+    ).then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })
+
+    let params1 = {
+      method: 'GET',
+      headers: myHeaders,
+    }
+
+    fetch(`${api}/comments/${id}`, params1
+    ).then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })
+
+  }
+
+  getPostDetail(){
+    console.log(this.props)
+    var localPost
+    var postFilter
+    if (Object.keys(this.props.post).length === 0 && this.props.post.constructor === Object){
+
+    }else{
+      console.log(this.props.post)
+      postFilter = this.props.post.filter((postL) => {
+        console.log(postL)
+        if(this.props.match.params.id !== null && this.props.match.params.id !== undefined){
+
+          return postL.id === this.props.match.params.id
+        }else{
+
+          return postL
+        }
+      }).map((post) => {
+        var time = moment(post.timestamp).format('MMMM Do YYYY');
+        var comment = this.getComments(post)
+        localPost =
+          <div>
+            <Row className="show-grid">
+              <Col xs={6} >
+                <span style={{fontSize: 30, fontWeight: 700}}>
+                  {`${post.title} `}
+                </span>
+                <span style={{fontSize: 25, fontWeight: 600}}>
+                   {`by ${post.author}`}
+                </span>
+              </Col>
+              <div style={{paddingTop: 17}}>
+                <Col xs={2} >
+                  <button onClick={() => this.incrementPostScore(post.id)}>
+                    <ArrowUp />
+                  </button>
+                  {` ${post.voteScore} `}
+                  <button onClick={() => this.decrementPostScore(post.id)}>
+                    <ArrowDown />
+                  </button>
+                </Col>
+                <Col xs={2} >
+                  {time}
+                </Col>
+                <Col xs={1} >
+                  <button onClick={() => this.handleEditPost(post.id)}>
+                    <Edit />
+                  </button>
+                </Col>
+                <Col xs={1} >
+                  <button  onClick={() => this.handleDeletePost(post.id)}>
+                    <Delete />
+                  </button>
+
+                </Col>
+              </div>
+            </Row>
+
+            <Row className="show-grid">
+              <ListGroup>
+                <ListGroupItem>
+                  {`${post.body}`}
+                </ListGroupItem>
+              </ListGroup>
+            </Row>
+            {comment}
+        </div>
+      })
+      if (localPost === undefined){
+        this.props.history.push('/404')
+      }
+      return localPost
+    }
+  }
+
+  getComments(post){
+    var commentArray = []
+    console.log(this.props)
+    if (Object.keys(this.props.comment).length === 0 && this.props.comment.constructor === Object){
+
+    }else{
+      console.log('in the elssseeeee')
+      let commentsFilter = this.props.comment.filter((commentL) => {
+        return post.id === commentL.parentId
+      })
+      console.log(commentsFilter)
+      commentArray.push(
+        <Row>
+          <Col xs={6} >
+            <span style={{fontSize: 25, fontWeight: 600}}>
+              {`Comments ${commentsFilter.length}`}
+            </span>
+          </Col>
+          <Col xs={2} >
+            <button onClick={() => this.handleCreateComment(post.id)}>
+              <h4 >
+                Add <Add size='20' style={{verticalAlign: 'bottom', paddingBottom:-15}} />
+              </h4>
+            </button>
+          </Col>
+
+          <Col xs={2} >
+            <button onClick={this.handleSortByScore.bind(this)}>
+              <h4>
+                Sort By Date <SortDown style={{verticalAlign: 'center'}}/>
+              </h4>
+            </button>
+          </Col>
+          <Col xs={2} >
+            <button onClick={this.handleSortByDate.bind(this)}>
+              <h4 >
+                Sort By Score <SortDown style={{verticalAlign: 'center'}}/>
+              </h4>
+            </button>
+          </Col>
+
+
+        </Row>
+      )
+      commentsFilter.map((comment) => {
+        commentArray.push(
+          <ListGroup>
+            <ListGroupItem>
+              <Row>
+                <Col xs={8}>
+                  <b>
+                    {`Author: ${comment.author}`}
+                  </b>
+                </Col>
+                <Col xs={2}>
+                  <button onClick={this.incrementCommentScore.bind(this, comment.id)}>
+                    <ArrowUp />
+                  </button>
+                  {` ${comment.voteScore} `}
+                  <button onClick={() => this.decrementCommentScore(comment.id)}>
+                    <ArrowDown />
+                  </button>
+
+                </Col>
+                <Col xs={1} >
+                  <button onClick={() => this.handleEditComment(comment.id)}>
+                    <Edit />
+                  </button>
+                </Col>
+                <Col xs={1} >
+                  <button onClick={() => this.handleDeleteComment(comment.id)}>
+                    <Delete />
+                  </button>
+                </Col>
+              </Row>
+            <Row style={{paddingRight:15, paddingLeft:15, textAlign:'left'}}>
+              {comment.body}
+            </Row>
+            </ListGroupItem>
+          </ListGroup>
+        )
+      })
+    }
+    return commentArray
+  }
+
+  handleSortByDate(){
+    console.log(this.props)
+    if (Object.keys(this.props.commentSort).length === 0 && this.props.commentSort.constructor === Object){
+      this.props.sortComments ("date", "ASC")
+    }else{
+      if(this.props.commentSort.sortBy !== "date"){
+        this.props.sortComments ("date", "ASC")
+      }else{
+        if(this.props.commentSort.way !== "ASC"){
+          this.props.sortComments ("date", "ASC")
+        }else{
+          this.props.sortComments ("date", "DESC")
+        }
+      }
+    }
+  }
+
+  handleSortByScore(){
+    console.log(this.props)
+    if (Object.keys(this.props.commentSort).length === 0 && this.props.commentSort.constructor === Object){
+      this.props.sortComments ("score", "ASC")
+    }else{
+      if(this.props.commentSort.sortBy !== "score"){
+        this.props.sortComments ("score", "ASC")
+      }else{
+        if(this.props.commentSort.way !== "ASC"){
+          this.props.sortComments ("score", "ASC")
+        }else{
+          this.props.sortComments ("score", "DESC")
+        }
+      }
+    }
+  }
+
   render() {
+    let post = this.getPostDetail()
     return (
       <div>
-        <Grid style={{paddingTop:'5px'}}>
-          <Row className="show-grid">
-            <Col xs={6} >
-              <span style={{fontSize: 30, fontWeight: 700}}>
-                Title&nbsp;
-              </span>
-              <span style={{fontSize: 25, fontWeight: 600}}>
-                 by Author
-              </span>
-            </Col>
-            <div style={{paddingTop: 17}}>
-              <Col xs={2} >
-                <ArrowUp /> 15 <ArrowDown />
-              </Col>
-              <Col xs={2} >
-                Timestamp
-              </Col>
-              <Col xs={1} >
-                <Edit />
-              </Col>
-              <Col xs={1} >
-                <Delete />
-              </Col>
-            </div>
-          </Row>
-
-          <Row className="show-grid">
-            <ListGroup>
-              <ListGroupItem>
-
-                Jean-Marc Bosman was a player for RFC Liège in the Belgian First Division in Belgium whose contract had expired in 1990. He wanted to change teams and move to Dunkerque, a French club. However, Dunkerque refused to meet his Belgian club's transfer fee demand, so Liège refused to release Bosman.[3]
-
-                In the meantime, Bosman's wages were reduced as he was no longer a first-team player.[4] He took his case to the European Court of Justice in Luxembourg and sued for restraint of trade, citing FIFA's rules regarding football, specifically Article 17.
-
-                Judgement	Edit
-
-                On 15 December 1995, the court ruled the system, as it was constituted, placed a restriction on the free movement of workers and was prohibited by Article 39(1) of the EC Treaty (now Article 45 (1) of the Treaty on the functioning of the European Union). Bosman and all other EU footballers were given the right to a free transfer at the expiration of their contracts, with the caveat they were transferring from a club within one EU association to a club within another EU association.
-
-                “	94 the provisions of the Treaty relating to freedom of movement for persons are intended to facilitate the pursuit by Community citizens of occupational activities of all kinds throughout the Community, and preclude measures which might place Community citizens at a disadvantage when they wish to pursue an economic activity in the territory of another Member State (see Case 143/87 Stanton v INASTI [1988] ECR 3877, paragraph 13, and Case C-370/90 The Queen v Immigration Appeal Tribunal and Surinder Singh [1992] ECR I-4265, paragraph 16).
-                95 in that context, nationals of Member States have in particular the right, which they derive directly from the Treaty, to leave their country of origin to enter the territory of another Member State and reside there in order there to pursue an economic activity (see, inter alia, Case C-363/89 Roux v Belgium [1991] ECR I-273, paragraph 9, and Singh, cited above, paragraph 17).
-
-                96 Provisions which preclude or deter a national of a Member State from leaving his country of origin in order to exercise his right to freedom of movement therefore constitute an obstacle to that freedom even if they apply without regard to the nationality of the workers concerned (see also Case C-10/90 Masgio v Bundesknappschaft [1991] ECR I-1119, paragraphs 18 and 19).
-
-                97 The Court has also stated, in Case 81/87 The Queen v H.M. Treasury and Commissioners of Inland Revenue ex parte Daily Mail and General Trust plc [1988] ECR 5483, paragraph 16, that even though the Treaty provisions relating to freedom of establishment are directed mainly to ensuring that foreign nationals and companies are treated in the host Member State in the same way as nationals of that State, they also prohibit the Member State of origin from hindering the establishment in another Member State of one of its nationals or of a company incorporated under its legislation which comes within the definition contained in Article 58. The rights guaranteed by Article 52 et seq. of the Treaty would be rendered meaningless if the Member State of origin could prohibit undertakings from leaving in order to establish themselves in another Member State. The same considerations apply, in relation to Article 48 of the Treaty, with regard to rules which impede the freedom of movement of nationals of one Member State wishing to engage in gainful employment in another Member State.
-
-                98 It is true that the transfer rules in issue in the main proceedings apply also to transfers of players between clubs belonging to different national associations within the same Member State and that similar rules govern transfers between clubs belonging to the same national association.
-
-                99 However, as has been pointed out by Mr Bosman, by the Danish Government and by the Advocate General in points 209 and 210 of his Opinion, those rules are likely to restrict the freedom of movement of players who wish to pursue their activity in another Member State by preventing or deterring them from leaving the clubs to which they belong even after the expiry of their contracts of employment with those clubs.
-
-                100 Since they provide that a professional footballer may not pursue his activity with a new club established in another Member State unless it has paid his former club a transfer fee agreed upon between the two clubs or determined in accordance with the regulations of the sporting associations, the said rules constitute an obstacle to freedom of movement for workers.
-
-                101 As the national court has rightly pointed out, that finding is not affected by the fact that the transfer rules adopted by UEFA in 1990 stipulate that the business relationship between the two clubs is to exert no influence on the activity of the player, who is to be free to play for his new club. The new club must still pay the fee in issue, under pain of penalties which may include its being struck off for debt, which prevents it just as effectively from signing up a player from a club in another Member State without paying that fee.
-
-                102 Nor is that conclusion negated by the case-law of the Court cited by URBSFA and UEFA, to the effect that Article 30 of the Treaty does not apply to measures which restrict or prohibit certain selling arrangements so long as they apply to all relevant traders operating within the national territory and so long as they affect in the same manner, in law and in fact, the marketing of domestic products and of those from other Member States (see Joined Cases C-267/91 and C-268/91 Keck and Mithouard [1993] ECR I-6097, paragraph 16).
-
-                103 It is sufficient to note that, although the rules in issue in the main proceedings apply also to transfers between clubs belonging to different national associations within the same Member State and are similar to those governing transfers between clubs belonging to the same national association, they still directly affect players'access to the employment market in other Member States and are thus capable of impeding freedom of movement for workers. They cannot, thus, be deemed comparable to the rules on selling arrangements for goods which in Keck and Mithouard were held to fall outside the ambit of Article 30 of the Treaty (see also, with regard to freedom to provide services, Case C-384/93 Alpine Investments v Minister van Financiën [1995] ECR I-1141, paragraphs 36 to 38).
-
-                104 Consequently, the transfer rules constitute an obstacle to freedom of movement for workers prohibited in principle by Article 48 of the Treaty. It could only be otherwise if those rules pursued a legitimate aim compatible with the Treaty and were justified by pressing reasons of public interest. But even if that were so, application of those rules would still have to be such as to ensure achievement of the aim in question and not go beyond what is necessary for that purpose (see, inter alia, the judgment in Kraus, cited above, paragraph 32, and Case C-55/94 Gebhard [1995] ECR I-0000, paragraph 37).
-
-              </ListGroupItem>
-            </ListGroup>
-          </Row>
-          <Row>
-            <Col xs={8} >
-              <span style={{fontSize: 25, fontWeight: 600}}>
-                Comments 10
-              </span>
-            </Col>
-            <Col xs={2} >
-              <span style={{fontSize: 25, fontWeight: 600}}>
-                 <Add />
-              </span>
-            </Col>
-            <Col xs={2} >
-              <span style={{fontSize: 25, fontWeight: 600}}>
-                 Sort By <SortDown/>
-              </span>
-            </Col>
-          </Row>
-
-
-            <ListGroup>
-              <ListGroupItem>
-                <Row>
-                  <Col xs={8}>
-                    Author
-                  </Col>
-                  <Col xs={2}>
-                    <ArrowUp /> 15 <ArrowDown />
-                  </Col>
-                  <Col xs={1} >
-                    <Edit />
-                  </Col>
-                  <Col xs={1} >
-                    <Delete />
-                  </Col>
-                </Row>
-              <Row style={{paddingRight:15, paddingLeft:15}}>
-                I am commenting random stuff. Yaay I am commenting
-                I am commenting random stuff. Yaay I am commenting
-                I am commenting random stuff. Yaay I am commenting
-                I am commenting random stuff. Yaay I am commenting
-                I am commenting random stuff. Yaay I am commenting
-                I am commenting random stuff. Yaay I am commenting
-              </Row>
-              </ListGroupItem>
-            </ListGroup>
-
+        <Grid style={{paddingTop:'5px', textAlign: 'left'}}>
+        {post}
         </Grid>
       </div>
 
@@ -131,4 +357,51 @@ class PostDetail extends Component {
   }
 }
 
-export default PostDetail;
+function mapStateToProps({post, comment, commentSort}) {
+  var commentL
+  if (Object.keys(commentSort).length === 0 && commentSort.constructor === Object){
+    commentL = comment
+  }else if(commentSort.sortBy === "date"){
+    if (commentSort.way === "ASC"){
+      commentL= comment.sort(function(a, b){
+        return a.timestamp-b.timestamp
+      })
+    }else if (commentSort.way === "DESC"){
+      commentL= comment.sort(function(a, b){
+        return b.timestamp-a.timestamp
+      })
+    }
+  }else if(commentSort.sortBy === "score"){
+    if (commentSort.way === "ASC"){
+      commentL= comment.sort(function(a, b){
+        return a.voteScore-b.voteScore
+      })
+    }else if (commentSort.way === "DESC"){
+      commentL= comment.sort(function(a, b){
+        return b.voteScore-a.voteScore
+      })
+    }
+  }else{
+    commentL = comment
+  }
+
+  console.log(commentL)
+
+  return {
+    comment: commentL,
+    commentSort,
+    post
+  }
+}
+
+function mapDispatchToProps(dispatch){
+  return {
+    sortComments: (sortBy, way) => dispatch(sortComments(sortBy, way)),
+    incrementPost: (id) => dispatch(incrementPost(id)),
+    decrementPost: (id) => dispatch(decrementPost(id)),
+    incrementComment: (id) => dispatch(incrementComment(id)),
+    decrementComment: (id) => dispatch(decrementComment(id)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(PostDetail);

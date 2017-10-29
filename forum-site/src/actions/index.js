@@ -60,8 +60,8 @@ export function addPost (post) {
 
 
 
-export function incrementComment (cid, vScore) {
-  return {type: INCREMENT_COMMENT, cid, vScore}
+export function incrementComment (cid) {
+  return {type: INCREMENT_COMMENT, cid}
 }
 
 export function decrementComment (cid, vScore) {
