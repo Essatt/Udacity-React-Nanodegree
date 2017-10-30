@@ -18,19 +18,72 @@ import Add from 'react-icons/lib/fa/plus-circle'
 import {
   sortPosts,
   addPost,
-  editPost,
   incrementPost,
   decrementPost,
   deletePost
 } from '../actions'
 
-//TODO cant access post details page (it reroutes to edit)
-//TODO cant click on post to go to post details
-//TODO deal with deleted posts and comments
-//TODO increment decrement posts
-//TODO DELETE posts
+//TODO deal with deleted posts and comments (test)
 
 class MainPage extends Component {
+  state = {
+    myHeaders: {
+      'Authorization': 'esats server',
+      'Content-Type': 'application/json',
+    },
+    api: 'http://localhost:5001'
+  }
+
+  handleEditPost(id){
+    this.props.history.push(`/post/edit/${id}`)
+  }
+
+  handleDeletePost(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'DELETE',
+      headers: myHeaders,
+    }
+    this.props.deletePost(id)
+
+    fetch(`${api}/posts/${id}`, params
+    ).then(resp => resp.json())
+    .then(responses => {
+      //console.log(responses)
+    })
+  }
+
+  incrementPostScore(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'POST',
+      headers: myHeaders,
+      body: JSON.stringify({ option: 'upVote' }),
+    }
+    this.props.incrementPost(id)
+    console.log(`${api}/posts/${id}`)
+    fetch(`${api}/posts/${id}`, params
+    ).then(resp => resp.json())
+    .then(responses => {
+      //console.log(responses)
+    })
+  }
+
+  decrementPostScore(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'POST',
+      headers: myHeaders,
+      body: JSON.stringify({ option: 'downVote' }),
+    }
+    this.props.decrementPost(id)
+    console.log(`${api}/posts/${id}`)
+    fetch(`${api}/posts/${id}`, params
+    ).then(resp => resp.json())
+    .then(responses => {
+      //console.log(responses)
+    })
+  }
 
   getCategories () {
     var categories = []
@@ -55,10 +108,17 @@ class MainPage extends Component {
     if (Object.keys(this.props.posts).length === 0 && this.props.posts.constructor === Object){
     }else{
       this.props.posts.filter((post) => {
+        //check if a category selected
         if(this.props.match.params.id !== null && this.props.match.params.id !== undefined){
-          return post.category == this.props.match.params.id
+          if(post.deleted === false){
+            return (post.category == this.props.match.params.id)
+          }
+
+        //if not show everything
         }else{
-          return post
+          if(post.deleted === false){
+            return post
+          }
         }
       })
       .map((post) => {
@@ -66,42 +126,52 @@ class MainPage extends Component {
         if (Object.keys(this.props.comments).length === 0 && this.props.comments.constructor === Object){
         }else{
           this.props.comments.map((comment) => {
-            if (comment.parentId === post.id){
+            if (comment.parentId === post.id  && comment.deleted == false){
               commentsArray.push(comment)
             }
           })
           postArray.push(
             <ListGroupItem key={post.id}>
-              <Link to={'/' + post.category + '/' + post.id}>
-                <Row className="show-grid" >
+              <Row className="show-grid" >
+                <Link to={'/' + post.category + '/' + post.id}>
                   <Col xs={4} md={4} lg={4} >
                     <div style={{textAlign: 'left'}}>
                       <span className='PostTitle' >{post.title}</span> by {post.author}
                     </div>
+                  </Col>
+                </Link>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <Comments /> {commentsArray.length}
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <button onClick={this.incrementPostScore.bind(this, post.id)}>
+                    <ArrowUp />
+                  </button>
+                  {` ${post.voteScore} `}
+                  <button  onClick={this.decrementPostScore.bind(this, post.id)}>
+                    <ArrowDown />
+                  </button>
 
-                  </Col>
-                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                    <Comments /> {commentsArray.length}
-                  </Col>
-                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
-                    <ArrowUp /> {post.voteScore} <ArrowDown />
-                  </Col>
-                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <button onClick={this.handleEditPost.bind(this, post.id)}>
                     <Edit />
-                  </Col>
-                  <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  </button>
+
+                </Col>
+                <Col style={{textAlign: 'center'}} xs={2} md={2} lg={2} >
+                  <button  onClick={this.handleDeletePost.bind(this, post.id)}>
                     <Delete />
-                  </Col>
-                </Row>
-              </Link>
+                  </button>
+
+                </Col>
+              </Row>
             </ListGroupItem>
           )
         }
       })
     }
-
     return postArray
-
   }
 
   handleSortByDate(){
@@ -146,8 +216,6 @@ class MainPage extends Component {
     var categories = this.getCategories()
     var posts = this.getPosts()
     var currentLocation = window.location.href
-    console.log(this.props)
-    console.log(currentLocation)
     return (
       <div>
         {// Headers -->
@@ -246,6 +314,9 @@ function mapStateToProps({post, comment, postSort, category}) {
 function mapDispatchToProps(dispatch) {
   return {
     sortPosts: (sortBy, way) => dispatch(sortPosts(sortBy, way)),
+    incrementPost: (id) => dispatch(incrementPost(id)),
+    decrementPost: (id) => dispatch(decrementPost(id)),
+    deletePost: (id) => dispatch(deletePost(id)),
   }
 }
 

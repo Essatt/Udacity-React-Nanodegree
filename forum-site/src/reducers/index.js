@@ -18,10 +18,8 @@ import {
   SORT_POSTS_BY
 } from '../actions'
 
-
 function category (state={}, action) {
   const { categories, category, post={}, comment } = action
-  let returnValue
 
   switch (action.type) {
     case INITIALIZE_CATEGORIES:
@@ -32,28 +30,81 @@ function category (state={}, action) {
   }
 }
 
-
-
 function post (state = {}, action) {
+  var index
+  var postIndex
+  var returnValue
+  const {id, timestamp, title, body, author, category} = action
 
   switch (action.type) {
     case INITIALIZE_POSTS:
       return action.posts
 
     case INCREMENT_POST:
-      return state
+
+      postIndex = state.filter((post, indexL) => {
+        if (post.id === action.pid){
+          index = indexL
+        }
+        return post.id === action.pid
+      })
+
+      returnValue = [...state]
+      returnValue[index].voteScore += 1
+      return returnValue
 
     case DECREMENT_POST:
-      return state
+      index
+      postIndex = state.filter((post, indexL) => {
+        if (post.id === action.pid){
+          index = indexL
+        }
+        return post.id === action.pid
+      })
+
+      returnValue = [...state]
+      returnValue[index].voteScore -= 1
+      return returnValue
 
     case EDIT_POST:
-      return state
+      returnValue = [...state]
+      index
+      postIndex = state.filter((post, indexL) => {
+        if (post.id === action.pid){
+          index = indexL
+        }
+        return post.id === action.pid
+      })
+      returnValue[index].title = title
+      returnValue[index].body = body
+      return returnValue
 
     case DELETE_POST:
-      return state
+      index
+      postIndex = state.filter((post, indexL) => {
+        if (post.id === action.pid){
+          index = indexL
+        }
+        return post.id === action.pid
+      })
+
+      returnValue = [...state]
+      returnValue[index].deleted = true
+      return returnValue
 
     case ADD_POST:
-      return state
+      returnValue = [...state]
+      returnValue.push({
+        id,
+        timestamp,
+        title,
+        body,
+        author,
+        category,
+        voteScore: 0,
+        deleted: false
+      })
+      return returnValue
 
     default:
       return state
@@ -61,10 +112,13 @@ function post (state = {}, action) {
 }
 
 function comment (state = {}, action) {
+  var index
+  var commentIndex
+  var returnValue
 
   switch (action.type) {
     case INITIALIZE_COMMENTS:
-      var returnValue = [...state]
+      returnValue = [...state]
       action.comments.map((comment) => {
         returnValue = [...returnValue, comment]
       })
@@ -72,26 +126,54 @@ function comment (state = {}, action) {
       return returnValue
 
     case INCREMENT_COMMENT:
-      var index
-      let commentIndex = state.filter((comment, indexL) => {
-        if (comment.id == action.cid){
+      commentIndex = state.filter((comment, indexL) => {
+        if (comment.id === action.cid){
           index = indexL
         }
-        return comment.id == action.cid
+        return comment.id === action.cid
       })
 
-      var returnValue = [...state]
+      returnValue = [...state]
       returnValue[index].voteScore += 1
       return returnValue
 
     case DECREMENT_COMMENT:
-      return state
+      commentIndex = state.filter((comment, indexL) => {
+        if (comment.id === action.cid){
+          index = indexL
+        }
+        return comment.id === action.cid
+      })
+
+      returnValue = [...state]
+      returnValue[index].voteScore -= 1
+      return returnValue
 
     case EDIT_COMMENT:
-      return state
+      const {timestamp, body} = action
+       commentIndex = state.filter((comment, indexL) => {
+        if (comment.id === action.cid){
+          index = indexL
+        }
+        return comment.id === action.cid
+      })
+
+      returnValue = [...state]
+      returnValue[index].timestamp = timestamp
+      returnValue[index].body = body
+      return returnValue
 
     case DELETE_COMMENT:
-      return state
+      commentIndex = state.filter((comment, indexL) => {
+        if (comment.id === action.cid){
+          index = indexL
+        }
+        return comment.id === action.cid
+      })
+
+      returnValue = [...state]
+      returnValue[index].deleted = true
+      return returnValue
 
     case ADD_COMMENT:
       return state
@@ -109,6 +191,7 @@ function commentSort (state = {}, action) {
           sortBy: action.sortBy,
           way: action.way
         }
+
     default:
       return state
   }

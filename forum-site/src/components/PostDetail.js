@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {connect} from 'react-redux'
 import moment from 'moment'
-
 import ArrowUp from 'react-icons/lib/fa/arrow-up'
 import ArrowDown from 'react-icons/lib/fa/arrow-down'
 //import Comments from 'react-icons/lib/fa/comments'
@@ -15,6 +14,14 @@ import Row from 'react-bootstrap/lib/Row'
 import Button from 'react-bootstrap/lib/Button'
 import ListGroup from 'react-bootstrap/lib/ListGroup'
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem'
+import Modal from 'react-modal'
+import FormGroup from 'react-bootstrap/lib/FormGroup'
+import FormControl from 'react-bootstrap/lib/FormControl'
+import ControlLabel from 'react-bootstrap/lib/ControlLabel'
+import HelpBlock from 'react-bootstrap/lib/HelpBlock'
+import uuidv4 from 'uuid/v4'
+import FieldGroup from './FieldGroup'
+
 import {
   sortComments,
   addComment,
@@ -28,40 +35,104 @@ import {
   editPost
 } from '../actions'
 
-//TODO cant click on post to go to post details
-//TODO deal with deleted posts and comments
-//TODO increment decrement comment
+//TODO deal with deleted posts and comments (test it)
 //TODO Edit comment
 //TODO ADD comment
-//TODO DELETE posts
 //TODO DELETE comment
 
 class PostDetail extends Component {
 
   state = {
-    myHeaders: { 'Authorization': 'esats server' },
-    api: 'http://localhost:5001'
+    myHeaders: {
+      'Authorization': 'esats server',
+      'Content-Type': 'application/json',
+    },
+    api: 'http://localhost:5001',
+    createCommentModalOpen: false,
+    editCommentModalOpen: false,
+    modalBody: '',
+    modalAuthor: '',
+    parentId: null
   }
 
   componentDidMount(){
+    this.checkIfDeleted()
     this.checkIfCategoryTrue()
   }
   componentWillReceiveProps(){
+    this.checkIfDeleted()
     this.checkIfCategoryTrue()
   }
 
-  checkIfCategoryTrue(){
-    console.log("in the checking")
-    console.log(this.props)
+  closeCreateCommentModal(){
+    this.setState(() => ({
+      createCommentModalOpen: false,
+      modalBody: '',
+      modalAuthor: ''
+    }))
+  }
+
+  closeEditCommentModal(){
+    this.setState(() => ({
+      editCommentModalOpen: false,
+      modalBody: '',
+    }))
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleCreateFormSubmit(){
+    const {myHeaders, api, createCommentModalOpen, modalBody, modalAuthor, parentId} = this.state
+    let body = modalBody
+    let author = modalAuthor
+    if (body === '' || author === '') {
+      alert("Please fill all the form fields and try again.");
+      return
+    }
+    var timestamp = Date.now()
+    var id = uuidv4()
+
+    let params = {
+      method: 'POST',
+      headers: myHeaders,
+      body: JSON.stringify({ id, timestamp, body, author, parentId }),
+    }
+    this.props.addComment(id, timestamp, body, author, parentId)
+
+    fetch(`${api}/posts`, params
+    ).then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })
+    alert("You have successfully created the post. You will now be directed to the main page.")
+    this.props.history.push(`/`)
+  }
+
+  checkIfDeleted(){
     if(typeof this.props.post !== 'undefined' && this.props.post.length > 0) {
-      console.log("its legit")
-      console.log(this.props.match.params.category)
       this.props.post.filter((post) => {
-        console.log(post)
-        console.log(this.props.match.params)
         return post.id == this.props.match.params.id
       }).map((post) => {
-        console.log(post.category)
+        if(post.deleted == true ){
+          this.props.history.push(`/404`)
+        }
+      })
+    }
+  }
+
+  checkIfCategoryTrue(){
+    if(typeof this.props.post !== 'undefined' && this.props.post.length > 0) {
+      this.props.post.filter((post) => {
+        return post.id == this.props.match.params.id
+      }).map((post) => {
         if(this.props.match.params.category != post.category ){
           this.props.history.push(`/404`)
         }
@@ -73,20 +144,42 @@ class PostDetail extends Component {
     this.props.history.push(`/post/edit/${id}`)
   }
 
-  handleDeletePost(){
+  handleDeletePost(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'DELETE',
+      headers: myHeaders,
+    }
+    this.props.deletePost(id)
 
+    fetch(`${api}/posts/${id}`, params
+    )
+    this.props.history.push(`/`)
   }
 
   handleEditComment(){
 
   }
 
-  handleDeleteComment(){
+  handleDeleteComment(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'DELETE',
+      headers: myHeaders,
+    }
+    this.props.deleteComment(id)
 
+    fetch(`${api}/comments/${id}`, params
+    )
+    this.props.history.push(`/`)
   }
 
-  handleCreateComment(){
-
+  handleCreateComment(parentId){
+    console.log('changing the state')
+    this.setState(() => ({
+      createCommentModalOpen: true,
+      parentId
+    }))
   }
 
   incrementPostScore(id){
@@ -94,59 +187,65 @@ class PostDetail extends Component {
     let params = {
       method: 'POST',
       headers: myHeaders,
-      body: 'option=upVote'
+      body: JSON.stringify({ option: 'upVote' }),
     }
-    //this.props.incrementComment(id)
-    console.log(`${api}/posts/${id}`)
+    this.props.incrementPost(id)
+
     fetch(`${api}/posts/${id}`, params
     ).then(resp => resp.json())
     .then(responses => {
-      console.log(responses)
+      //console.log(responses)
     })
+  }
 
-    let params1 = {
-      method: 'GET',
+  decrementPostScore(id){
+    const {api, myHeaders} = this.state
+    let params = {
+      method: 'POST',
       headers: myHeaders,
+      body: JSON.stringify({ option: 'downVote' }),
     }
+    this.props.decrementPost(id)
 
-    fetch(`${api}/posts/${id}`, params1
+    fetch(`${api}/posts/${id}`, params
     ).then(resp => resp.json())
     .then(responses => {
-      console.log(responses)
+      //console.log(responses)
     })
-
   }
 
   incrementCommentScore(id){
     const {api, myHeaders} = this.state
-    console.log(api)
-    console.log(myHeaders)
-    console.log(id)
 
     let params = {
       method: 'POST',
       headers: myHeaders,
-      body: 'option=upVote'
+      body: JSON.stringify({ option: 'upVote' }),
     }
     this.props.incrementComment(id)
-    console.log(`${api}/comments/${id}`)
+
     fetch(`${api}/comments/${id}`, params
     ).then(resp => resp.json())
     .then(responses => {
-      console.log(responses)
+      //console.log(responses)
     })
+  }
 
-    let params1 = {
-      method: 'GET',
+  decrementCommentScore(id){
+    const {api, myHeaders} = this.state
+
+    let params = {
+      method: 'POST',
       headers: myHeaders,
+      body: JSON.stringify({ option: 'downVote' }),
     }
+    this.props.decrementComment(id)
 
-    fetch(`${api}/comments/${id}`, params1
+    fetch(`${api}/comments/${id}`, params
     ).then(resp => resp.json())
     .then(responses => {
-      console.log(responses)
+      //console.log(responses)
     })
-
   }
 
   getPostDetail(){
@@ -172,6 +271,7 @@ class PostDetail extends Component {
         localPost =
           <div>
             <Row className="show-grid">
+
               <Col xs={6} >
                 <span style={{fontSize: 30, fontWeight: 700}}>
                   {`${post.title} `}
@@ -199,7 +299,7 @@ class PostDetail extends Component {
                   </button>
                 </Col>
                 <Col xs={1} >
-                  <button  onClick={() => this.handleDeletePost(post.id)}>
+                  <button onClick={() => this.handleDeletePost(post.id)}>
                     <Delete />
                   </button>
 
@@ -214,7 +314,9 @@ class PostDetail extends Component {
                 </ListGroupItem>
               </ListGroup>
             </Row>
-            {comment}
+            <Row>
+              {comment}
+            </Row>
         </div>
       })
       if (localPost === undefined){
@@ -226,17 +328,17 @@ class PostDetail extends Component {
 
   getComments(post){
     var commentArray = []
-    console.log(this.props)
     if (Object.keys(this.props.comment).length === 0 && this.props.comment.constructor === Object){
 
     }else{
       console.log('in the elssseeeee')
       let commentsFilter = this.props.comment.filter((commentL) => {
-        return post.id === commentL.parentId
+        if (commentL.deleted === false) {
+          return (post.id === commentL.parentId)
+        }
       })
-      console.log(commentsFilter)
       commentArray.push(
-        <Row>
+        <Row key={post.id}>
           <Col xs={6} >
             <span style={{fontSize: 25, fontWeight: 600}}>
               {`Comments ${commentsFilter.length}`}
@@ -264,13 +366,11 @@ class PostDetail extends Component {
               </h4>
             </button>
           </Col>
-
-
         </Row>
       )
       commentsFilter.map((comment) => {
         commentArray.push(
-          <ListGroup>
+          <ListGroup key={comment.id}>
             <ListGroupItem>
               <Row>
                 <Col xs={8}>
@@ -286,7 +386,6 @@ class PostDetail extends Component {
                   <button onClick={() => this.decrementCommentScore(comment.id)}>
                     <ArrowDown />
                   </button>
-
                 </Col>
                 <Col xs={1} >
                   <button onClick={() => this.handleEditComment(comment.id)}>
@@ -346,11 +445,59 @@ class PostDetail extends Component {
 
   render() {
     let post = this.getPostDetail()
+    console.log(this.state)
+    const {modalBody, modalAuthor, createCommentModalOpen, editCommentModalOpen} = this.state
     return (
       <div>
         <Grid style={{paddingTop:'5px', textAlign: 'left'}}>
         {post}
+        <Modal className='modal' overlayClassName='overlay' isOpen={editCommentModalOpen} onRequestClose={this.closeEditCommentModal} contentLabel='Modal'>
+          <div>
+            ola
+          </div>
+        </Modal>
         </Grid>
+
+        <Modal className='modal' overlayClassName='overlay' isOpen={createCommentModalOpen} onRequestClose={this.closeCreateCommentModal} contentLabel='Modal'>
+          <div>
+            <form onSubmit={this.handleCreateFormSubmit}>
+              <Grid key='formGrid' style={{paddingTop:'5px', textAlign: 'left'}}>
+                <Row key='intro'>
+                  <h3>
+                    Create Comment
+                  </h3>
+                </Row>
+                <Row key='title'>
+                  <FieldGroup
+                    id="postAuthor"
+                    type="text"
+                    label="Author"
+                    placeholder="Author..."
+                    name="author"
+                    value={this.state.modalAuthor}
+                    onChange={this.handleInputChange}
+                  />
+                </Row>
+                <Row key='body'>
+                  <FormGroup controlId="formControlsTextarea">
+                    <ControlLabel>Body</ControlLabel>
+                    <FormControl
+                      name="body"
+                      value={this.state.modalBodybody}
+                      componentClass="textarea"
+                      placeholder="The body of the post..."
+                      onChange={this.handleInputChange} />
+                  </FormGroup>
+                </Row>
+                <Row key='createbutton'>
+                  <Button type="submit" /*onClick={this.submitCreatePost.bind(this)}*/>
+                    Create Comment
+                  </Button>
+                </Row>
+              </Grid>
+            </form>
+          </div>
+        </Modal>
       </div>
 
     );
@@ -401,6 +548,10 @@ function mapDispatchToProps(dispatch){
     decrementPost: (id) => dispatch(decrementPost(id)),
     incrementComment: (id) => dispatch(incrementComment(id)),
     decrementComment: (id) => dispatch(decrementComment(id)),
+    deletePost: (id) => dispatch(deletePost(id)),
+    deleteComment: (id) => dispatch(deleteComment(id)),
+    editComment: (timestamp, body) => dispatch(editComment(timestamp, body)),
+    addComment: (id, timestamp, body, author, parentId) => dispatch(addComment(id, timestamp, body, author, parentId)),
   }
 }
 
