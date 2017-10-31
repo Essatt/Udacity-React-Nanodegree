@@ -2,9 +2,9 @@
 
 This web app is a forum site like Reddit without the authorization features. This app was made as a project for Udacity React Nanodegree, and the back-end development server was provided by Udacity.
 
-## What Was Used
+## Technologies Used
 
-This project was build by React.js and it heavily relies on Redux for state management.
+This project was build by React.js and it heavily relies on Redux for state management. Many other libraries were used to complete required tasks. A full list can be found in [package.json](package.json) file.
 
 ## How to Run the Project
 
