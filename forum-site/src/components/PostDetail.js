@@ -52,7 +52,8 @@ class PostDetail extends Component {
     editCommentModalOpen: false,
     modalBody: '',
     modalAuthor: '',
-    parentId: null
+    parentId: null,
+    modelCommentId: null
   }
 
   componentDidMount(){
@@ -64,18 +65,13 @@ class PostDetail extends Component {
     this.checkIfCategoryTrue()
   }
 
-  closeCreateCommentModal(){
+  closeCommentModal(){
     this.setState(() => ({
       createCommentModalOpen: false,
-      modalBody: '',
-      modalAuthor: ''
-    }))
-  }
-
-  closeEditCommentModal(){
-    this.setState(() => ({
       editCommentModalOpen: false,
       modalBody: '',
+      modalAuthor: '',
+      modelCommentId: null,
     }))
   }
 
@@ -89,8 +85,34 @@ class PostDetail extends Component {
     });
   }
 
+  handleEditFormSubmit(){
+    const {myHeaders, api, modalBody, parentId, modelCommentId} = this.state
+    const {params} = this.props.match
+    let body = modalBody
+    let id = modelCommentId
+    if (body === '') {
+      alert("Please fill all the form fields and try again.");
+      return
+    }
+    var timestamp = Date.now()
+
+    let parameters = {
+      method: 'PUT',
+      headers: myHeaders,
+      body: JSON.stringify({ timestamp, body }),
+    }
+    this.props.editComment(id, timestamp, body)
+
+    fetch(`${api}/comments/${id}`, parameters
+    ).then(resp => resp.json())
+    .then(responses => {
+      console.log(responses)
+    })
+  }
+
   handleCreateFormSubmit(){
-    const {myHeaders, api, createCommentModalOpen, modalBody, modalAuthor, parentId} = this.state
+    const {myHeaders, api, modalBody, modalAuthor, parentId} = this.state
+    const {params} = this.props.match
     let body = modalBody
     let author = modalAuthor
     if (body === '' || author === '') {
@@ -100,20 +122,19 @@ class PostDetail extends Component {
     var timestamp = Date.now()
     var id = uuidv4()
 
-    let params = {
+    let parameters = {
       method: 'POST',
       headers: myHeaders,
       body: JSON.stringify({ id, timestamp, body, author, parentId }),
     }
     this.props.addComment(id, timestamp, body, author, parentId)
 
-    fetch(`${api}/posts`, params
+    fetch(`${api}/comments`, parameters
     ).then(resp => resp.json())
     .then(responses => {
-      console.log(responses)
+      //console.log(responses)
     })
-    alert("You have successfully created the post. You will now be directed to the main page.")
-    this.props.history.push(`/`)
+    alert("You have successfully created the comment.")
   }
 
   checkIfDeleted(){
@@ -157,8 +178,20 @@ class PostDetail extends Component {
     this.props.history.push(`/`)
   }
 
-  handleEditComment(){
-
+  handleEditComment(id){
+    var body
+    var loop = [...this.props.comment]
+    loop.filter((comment, indexL) => {
+      if (comment.id === id){
+        body = comment.body
+      }
+      return comment.id === id
+    })
+    this.setState({
+      modelCommentId: id,
+      editCommentModalOpen: true,
+      modalBody: body
+    })
   }
 
   handleDeleteComment(id){
@@ -171,11 +204,9 @@ class PostDetail extends Component {
 
     fetch(`${api}/comments/${id}`, params
     )
-    this.props.history.push(`/`)
   }
 
   handleCreateComment(parentId){
-    console.log('changing the state')
     this.setState(() => ({
       createCommentModalOpen: true,
       parentId
@@ -449,18 +480,46 @@ class PostDetail extends Component {
     const {modalBody, modalAuthor, createCommentModalOpen, editCommentModalOpen} = this.state
     return (
       <div>
-        <Grid style={{paddingTop:'5px', textAlign: 'left'}}>
-        {post}
-        <Modal className='modal' overlayClassName='overlay' isOpen={editCommentModalOpen} onRequestClose={this.closeEditCommentModal} contentLabel='Modal'>
-          <div>
-            ola
-          </div>
-        </Modal>
+        <Grid key='mainGrid' style={{paddingTop:'5px', textAlign: 'left'}}>
+          {post}
+          <Modal key='editModal' overlayClassName='overlay' isOpen={editCommentModalOpen} onRequestClose={this.closeCommentModal.bind(this)} contentLabel='Modal'>
+            <div>
+              <form onSubmit={this.handleEditFormSubmit.bind(this)}>
+                <Grid key='editformGrid' style={{paddingTop:'5px', textAlign: 'left'}}>
+                  <Row key='editIntro'>
+                    <h3>
+                      Edit Comment
+                    </h3>
+                  </Row>
+                  <Row key='editBody'>
+                    <FormGroup controlId="formControlsTextarea">
+                      <ControlLabel>Body</ControlLabel>
+                      <FormControl
+                        name="modalBody"
+                        value={this.state.modalBody}
+                        componentClass="textarea"
+                        placeholder="The body of the post..."
+                        onChange={this.handleInputChange.bind(this)} />
+                    </FormGroup>
+                  </Row>
+                  <Row key='editButton'>
+                    <Button type="submit" /*onClick={this.submitCreateComment.bind(this)}*/>
+                      Edit Comment
+                    </Button>
+                    {"  "}
+                    <Button type="submit" onClick={this.closeCommentModal.bind(this)}>
+                      Cancel
+                    </Button>
+                  </Row>
+                </Grid>
+              </form>
+            </div>
+          </Modal>
         </Grid>
 
-        <Modal className='modal' overlayClassName='overlay' isOpen={createCommentModalOpen} onRequestClose={this.closeCreateCommentModal} contentLabel='Modal'>
+        <Modal overlayClassName='overlay' isOpen={createCommentModalOpen} onRequestClose={this.closeCommentModal.bind(this)} contentLabel='Modal'>
           <div>
-            <form onSubmit={this.handleCreateFormSubmit}>
+            <form onSubmit={this.handleCreateFormSubmit.bind(this)}>
               <Grid key='formGrid' style={{paddingTop:'5px', textAlign: 'left'}}>
                 <Row key='intro'>
                   <h3>
@@ -473,25 +532,29 @@ class PostDetail extends Component {
                     type="text"
                     label="Author"
                     placeholder="Author..."
-                    name="author"
+                    name="modalAuthor"
                     value={this.state.modalAuthor}
-                    onChange={this.handleInputChange}
+                    onChange={this.handleInputChange.bind(this)}
                   />
                 </Row>
                 <Row key='body'>
                   <FormGroup controlId="formControlsTextarea">
                     <ControlLabel>Body</ControlLabel>
                     <FormControl
-                      name="body"
-                      value={this.state.modalBodybody}
+                      name="modalBody"
+                      value={this.state.modalBody}
                       componentClass="textarea"
                       placeholder="The body of the post..."
-                      onChange={this.handleInputChange} />
+                      onChange={this.handleInputChange.bind(this)} />
                   </FormGroup>
                 </Row>
                 <Row key='createbutton'>
-                  <Button type="submit" /*onClick={this.submitCreatePost.bind(this)}*/>
+                  <Button type="submit" /*onClick={this.submitCreateComment.bind(this)}*/>
                     Create Comment
+                  </Button>
+                  {"  "}
+                  <Button type="submit" onClick={this.closeCommentModal.bind(this)}>
+                    Cancel
                   </Button>
                 </Row>
               </Grid>
@@ -550,7 +613,7 @@ function mapDispatchToProps(dispatch){
     decrementComment: (id) => dispatch(decrementComment(id)),
     deletePost: (id) => dispatch(deletePost(id)),
     deleteComment: (id) => dispatch(deleteComment(id)),
-    editComment: (timestamp, body) => dispatch(editComment(timestamp, body)),
+    editComment: (id, timestamp, body) => dispatch(editComment(id, timestamp, body)),
     addComment: (id, timestamp, body, author, parentId) => dispatch(addComment(id, timestamp, body, author, parentId)),
   }
 }

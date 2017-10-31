@@ -68,14 +68,14 @@ export function decrementComment (cid) {
   return {type: DECREMENT_COMMENT, cid}
 }
 
-export function editComment (cid, comment) {
-  return {type: EDIT_COMMENT, cid, comment}
+export function editComment (cid, timestamp, body) {
+  return {type: EDIT_COMMENT, cid, timestamp, body}
 }
 
 export function deleteComment (cid) {
   return {type: DELETE_COMMENT, cid}
 }
 
-export function addComment (comment) {
-  return {type: ADD_COMMENT, comment}
+export function addComment (id, timestamp, body, author, parentId) {
+  return {type: ADD_COMMENT, id, timestamp, body, author, parentId}
 }

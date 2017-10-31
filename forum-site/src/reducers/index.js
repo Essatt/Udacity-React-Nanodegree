@@ -115,6 +115,7 @@ function comment (state = {}, action) {
   var index
   var commentIndex
   var returnValue
+  const {timestamp, body, id, parentId,author} = action
 
   switch (action.type) {
     case INITIALIZE_COMMENTS:
@@ -150,7 +151,6 @@ function comment (state = {}, action) {
       return returnValue
 
     case EDIT_COMMENT:
-      const {timestamp, body} = action
        commentIndex = state.filter((comment, indexL) => {
         if (comment.id === action.cid){
           index = indexL
@@ -176,7 +176,17 @@ function comment (state = {}, action) {
       return returnValue
 
     case ADD_COMMENT:
-      return state
+      returnValue = [...state]
+      returnValue.push({
+        id,
+        timestamp,
+        author,
+        body,
+        parentId,
+        voteScore: 0,
+        deleted: false
+      })
+      return returnValue
 
     default:
       return state
