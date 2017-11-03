@@ -14,4 +14,7 @@ To run the project follow the following steps:
 
 1. Clone the project to a local depository
 2. Type `npm install` in the command line
-3. Type `npm start` in the command line
+3. Navigate to `reactnd-project-readable-starter` folder
+4. Type `node server` in the command line
+5. Navigate to `forum-site` folder again
+6. Type `npm start` in the command line
